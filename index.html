@@ -152,6 +152,38 @@ will be open-sourced upon paper acceptance.
   </div>
 </section>
 
+
+<section class="section" style="padding-top: 2rem; padding-bottom: 2rem;">
+  <div class="container">
+    <h2 class="title has-text-centered">Novel View Videos</h2>
+
+    <div class="carousel" style="position: relative; overflow: hidden;">
+      <!-- Carousel Items (Videos) -->
+      <div class="carousel-item is-active">
+        <figure class="image">
+          <video src="./video/082831_new.mp4" style="width: 80%; max-width: 80%; height: auto; display: block; margin: 0 auto;" playsinline autoplay muted loop controls></video>
+          <figcaption class="has-text-centered has-text-weight-semibold" style="margin-top: 12px; font-size: 1.2rem;">Video 1</figcaption>
+        </figure>
+      </div>
+      <div class="carousel-item">
+        <figure class="image">
+          <video src="./video/100613.mp4" style="width: 80%; max-width: 80%; height: auto; display: block; margin: 0 auto;" playsinline autoplay muted loop controls></video>
+          <figcaption class="has-text-centered has-text-weight-semibold" style="margin-top: 12px; font-size: 1.2rem;">Video 2</figcaption>
+        </figure>
+      </div>
+
+      <!-- 导航按钮 -->
+      <button class="carousel-navigation left">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button class="carousel-navigation right">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+  
+</section>
+
 <section class="section" style="padding-top: 2rem; padding-bottom: 2rem;">
   <div class="container is-max-desktop">
     <!-- Method. -->
@@ -351,27 +383,37 @@ stage, we design a depth-aware densification criterion for more accurate skew ga
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    let currentIndex = 0;
-    const items = document.querySelectorAll('.carousel .carousel-item');
-    const totalItems = items.length;
+    // 支持页面上多个 .carousel 实例，各自独立状态
+    const carousels = document.querySelectorAll('.carousel');
+    carousels.forEach((carousel) => {
+      const items = carousel.querySelectorAll('.carousel-item');
+      if (!items.length) return;
+      let currentIndex = Array.from(items).findIndex(el => el.classList.contains('is-active'));
+      if (currentIndex === -1) currentIndex = 0, items[0].classList.add('is-active');
 
-    function showImage(index) {
-      items[currentIndex].classList.remove('is-active');
-      currentIndex = (index + totalItems) % totalItems;
-      items[currentIndex].classList.add('is-active');
-    }
+      const show = (index) => {
+        items[currentIndex].classList.remove('is-active');
+        currentIndex = (index + items.length) % items.length;
+        items[currentIndex].classList.add('is-active');
 
-    function showNextImage() {
-      showImage(currentIndex + 1);
-    }
+        // 若切到视频项，自动播放；切走时暂停上一项视频
+        items.forEach((it, idx) => {
+          const v = it.querySelector('video');
+          if (v) {
+            if (idx === currentIndex) {
+              v.play().catch(() => {});
+            } else {
+              v.pause();
+            }
+          }
+        });
+      };
 
-    function showPreviousImage() {
-      showImage(currentIndex - 1);
-    }
-
-    // 添加导航按钮的点击事件
-    document.querySelector('.carousel-navigation.left').addEventListener('click', showPreviousImage);
-    document.querySelector('.carousel-navigation.right').addEventListener('click', showNextImage);
+      const prevBtn = carousel.querySelector('.carousel-navigation.left');
+      const nextBtn = carousel.querySelector('.carousel-navigation.right');
+      if (prevBtn) prevBtn.addEventListener('click', () => show(currentIndex - 1));
+      if (nextBtn) nextBtn.addEventListener('click', () => show(currentIndex + 1));
+    });
   });
 </script>
 
